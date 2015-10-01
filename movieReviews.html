@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+	<head>
+		<?php header("Access-Control-Allow-Origin: *");?>
+		<title>Movie Reviews courtesy of the New York Times</title>
+		  
+		<script type="text/javascript">
+		//Using an onload function so the javascript will execute after the page has been loaded.
+
+		window.onload = function() 
+		{ 
+			//Onclick handler for the zip code web service retriever
+			document.getElementById("movieSubmit").onclick = function() 
+			{
+				var search = document.getElementById("search").value;
+				var data = document.getElementById("placeMovieData");
+				var numResults = document.getElementById("numResults");
+				var url = 'http://api.nytimes.com/svc/movies/v2/reviews/search.json?query=' + search + '&api-key=2b3360a139ab46e3687c3b3569eb381c:1:70029158';
+				var xmlhttp = null;
+				if (window.XMLHttpRequest) 
+				{
+						xmlhttp = new XMLHttpRequest();
+						//make sure that Browser supports overrideMimeType
+						if ( typeof xmlhttp.overrideMimeType != 'undefined') 
+						{ 
+							xmlhttp.overrideMimeType('text/xml'); 
+						}
+				} 
+				else if (window.ActiveXObject) 
+				{
+					xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+				}  
+				else 
+				{
+					alert('Perhaps your browser does not support xmlhttprequests?');
+				}
+
+				// Create an HTTP GET request
+				xmlhttp.open('GET', url, true);
+				//xmlhttp.setRequestHeader('access-control-allow-headers', 'http://www.suicidedeathcult.com/test/');
+
+				// Set the callback function
+				xmlhttp.onreadystatechange = function() 
+				{
+					if (xmlhttp.readyState == 4 && xmlhttp.status == 200) 
+					{
+					   var nyTimesData = JSON.parse(xmlhttp.responseText);
+					   //Clear the results 
+					   numResults.innerHTML = "";
+					   numResults.innerHTML += "Results: " + nyTimesData.num_results + " entries.";
+
+					   data.innerHTML = "";
+					   
+					   for (var i = 0; i < nyTimesData.results.length; i++)
+					   {
+					       data.innerHTML += "<div class='title'>" + nyTimesData.results[i].display_title + "</div>";
+					       data.innerHTML += "<div class='byLine'>" + nyTimesData.results[i].byline + "</div>";
+					       data.innerHTML += "<div class='openingDate'>" + nyTimesData.results[i].opening_date + "</div>";
+					       
+					       //I think NR comes back as null, so I added this check
+					       if (nyTimesData.results[i].mpaa_rating !== null)
+					       {
+					           data.innerHTML += "<div class='rating'>" + nyTimesData.results[i].mpaa_rating + "</div>";
+					       }
+					       else
+					       {
+					           data.innerHTML += "<div class='rating'>No rating data available</div>";
+					       }
+					       
+					       data.innerHTML += "<div class='description'>" + nyTimesData.results[i].summary_short + "</div>";
+
+					       for (var j = 0; j < nyTimesData.results[i].related_urls.length; j++)
+					       {
+					           data.innerHTML += "<div class='urls'> <a href=" + nyTimesData.results[i].related_urls[j].url + ">" + nyTimesData.results[i].related_urls[j].suggested_link_text + "</a> </div>";
+					       }
+
+					       
+					   }
+					} 
+					else 
+					{
+						// waiting for the call to complete
+					}
+				};
+
+				// Make the actual request
+				xmlhttp.send(null);	
+			}
+		}
+		</script>
+
+		<style>
+			body { color: black; background: #543;}
+			* {box-sizing:border-box; font-family: Palatino,Palatino Linotype,Palatino LT STD,Book Antiqua,Georgia,serif; }
+			.wrapper { display:table; background: #CBA; max-width: 900px; width: 100%; margin:0 auto; }
+			.container { width: 98%; float: left; clear:both; margin:1%; min-height: 42px;}
+			.container #form { width: 50%; }
+			.results { margin: 1%; }
+			#placeData { color: #6E85FF;}
+			#form div { margin: 1%; display: block;}
+			#form .label { float: left; width: 25%; margin-right: 1%; }
+			#form input { float: left; width: 50%; margin-right: 1%; }
+			#form button { float: left; }
+			.results.text { width: 99%; margin: 0 auto; }
+			.results.text h3 { -webkit-margin-before: 0; -webkit-margin-after: 0; }
+			hr { width: 99%; -webkit-margin-before: 0; -webkit-margin-after: 0; }
+			h1 { margin: 0 auto; }
+			a { color: #543; font-weight: 700;}
+			.title { font-size:1.5em; margin-top: .5em;}
+			.byline {}
+			.openingDate {}
+			.rating {}
+			.urls {}
+		</style>
+	</head>
+	<body>
+
+
+	<div class="wrapper">
+		<div class="container">
+			<div id="form">
+				<div>
+					<span class="label">Enter Movie:</span><input id="search" type="text"/>
+				</div>
+				<div>
+					<button id="movieSubmit">Get reviews!</button>
+				</div>
+			</div>
+		</div>
+		<div class="container">
+			<div class="results text">
+				<div id="numResults" class="title">Results:</div>
+			</div>
+			<hr/>
+			<div class="results" id="placeMovieData">
+
+			</div>
+		</div>
+	</div>
+	</body>
+</html>
